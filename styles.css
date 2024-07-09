@@ -1,0 +1,80 @@
+body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 80%;
+    /* Adjusted width for better spacing */
+    max-width: 800px;
+    /* Increased max-width for larger box */
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 5px;
+    /* Increased padding for better spacing */
+    text-align: center;
+}
+
+#flashcard {
+    padding: 30px;
+    border-radius: 18px;
+    /* Added margin at the bottom for spacing */
+}
+
+#group {
+    font-size: 20px;
+    /* Increased font size for group label */
+    margin-bottom: 30px;
+    color: #333;
+}
+
+#word {
+    font-size: 80px;
+    /* Increased font size for word */
+    font-weight: bolder;
+    cursor: pointer;
+    color: #333;
+    margin-bottom: 30px;
+    /* Increased margin for word */
+}
+
+#definition {
+    font-size: 20px;
+    display: none;
+    margin-top: 30px;
+    color: #555;
+}
+
+#example {
+    display: none;
+    font-size: 17px;
+    margin-top: 30px;
+    /* Increased margin for better spacing */
+    font-style: italic;
+    color: #555;
+}
+
+#progress {
+    margin-top: 50px;
+    /* Increased margin for progress */
+    font-size: 18px;
+    /* Increased font size for progress */
+    color: #777;
+}
+
+#score {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    /* Increased font size for score */
+    font-weight: bold;
+    color: #333;
+}
