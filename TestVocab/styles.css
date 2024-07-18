@@ -14,12 +14,43 @@ body {
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 20px;
-    padding: 5px;
+    padding: 20px;
     text-align: center;
 }
 
+#group-selection {
+    margin-bottom: 20px;
+}
+
+#group-selection h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+#groupSelect {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#startQuiz {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#startQuiz:hover {
+    background-color: #0056b3;
+}
+
 #flashcard {
-    padding: 30px;
+    padding: 20px;
     border-radius: 18px;
 }
 
@@ -29,23 +60,21 @@ body {
     color: #333;
 }
 
-#word {
-    font-size: 80px;
-    font-weight: bolder;
-    cursor: pointer;
-    color: #333;
-    margin-bottom: 30px;
-}
-
 #definition {
-    font-size: 20px;
-    display: none;
+    font-size: 30px;
+    font-weight: bold;
     margin-top: 30px;
     color: #555;
 }
 
+#correctWord {
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: rgb(250, 250, 250);
+}
+
 #example {
-    display: none;
     font-size: 17px;
     margin-top: 30px;
     font-style: italic;
@@ -59,7 +88,6 @@ body {
 }
 
 #score {
-    display: none;
     position: absolute;
     top: 20px;
     right: 20px;
@@ -68,38 +96,13 @@ body {
     color: #333;
 }
 
-#test-section {
+#userInput {
     margin-top: 30px;
-}
-
-#test-content {
-    margin-top: 20px;
-}
-
-#test-definition {
+    padding: 10px;
     font-size: 20px;
-    margin-bottom: 10px;
-}
-
-#user-answer {
-    font-size: 18px;
-    padding: 5px;
-}
-
-#submit-answer {
-    margin-top: 10px;
-    padding: 5px 10px;
-    font-size: 18px;
-}
-
-#feedback {
-    margin-top: 10px;
-    font-size: 18px;
-    color: #d9534f;
-}
-
-#test-progress {
-    margin-top: 20px;
-    font-size: 18px;
-    color: #777;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    box-sizing: border-box;
+    text-align: center;
 }

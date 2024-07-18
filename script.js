@@ -1,21 +1,35 @@
 document.addEventListener('DOMContentLoaded', function () {
-    let currentIndex = 0; // Initialize index for current word
-    let words = []; // Array to hold fetched words
-    const groupSize = 30; // Number of words per group
-    let score = 0; // Initialize score
-    let wordStates = {}; // Object to hold the state of each word (up or down)
+    let currentIndex = 0;
+    let words = [];
+    const groupSize = 30;
+    let score = 0;
+    let wordStates = {};
+    let currentTestIndex = 0;
+    let currentTestGroup = 0;
+    let testWords = [];
 
     function fetchAndDisplayFlashcards() {
         fetch('http://localhost:8000/flashcards.json')
             .then(response => response.json())
             .then(data => {
                 words = data.words;
-                updateFlashcard(currentIndex); // Initial update with first word
+                populateGroupSelect();
+                updateFlashcard(currentIndex);
             })
             .catch(error => console.error('Error fetching JSON:', error));
     }
 
-    // Function to update flashcard content
+    function populateGroupSelect() {
+        const groupSelect = document.getElementById('group-select');
+        const totalGroups = Math.ceil(words.length / groupSize);
+        for (let i = 1; i <= totalGroups; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Group ${i}`;
+            groupSelect.appendChild(option);
+        }
+    }
+
     function updateFlashcard(index) {
         const wordElement = document.getElementById('word');
         const definitionElement = document.getElementById('definition');
@@ -25,23 +39,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const scoreElement = document.getElementById('score');
         const flashcardElement = document.getElementById('flashcard');
 
-        // Determine the group number and word position
         const groupNumber = Math.floor(index / groupSize) + 1;
         const wordPosition = index % groupSize + 1;
 
-        // Display group number, word, definition, example, and progress
         groupElement.textContent = `Group ${groupNumber}`;
         wordElement.textContent = words[index].word;
         definitionElement.textContent = `${words[index].definition}`;
         exampleElement.textContent = `Example: ${words[index].example}`;
-        definitionElement.style.display = 'none'; // Hide definition initially
-        exampleElement.style.display = 'none'; // Hide example initially
+        definitionElement.style.display = 'none';
+        exampleElement.style.display = 'none';
         progressElement.textContent = `${wordPosition}/${groupSize}`;
 
-        // Hide the score until review is finished
         scoreElement.style.display = 'none';
 
-        // Update the flashcard color based on the word state
         if (wordStates[words[index].word] === 'up') {
             flashcardElement.style.backgroundColor = 'lightgreen';
         } else if (wordStates[words[index].word] === 'down') {
@@ -51,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to toggle definition and example display
     function toggleDetails() {
         const definitionElement = document.getElementById('definition');
         const exampleElement = document.getElementById('example');
@@ -64,56 +73,116 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Event listener for key press events
+    function startTest() {
+        currentTestIndex = 0;
+        score = 0;
+        const groupSelect = document.getElementById('group-select');
+        currentTestGroup = parseInt(groupSelect.value);
+        testWords = words.slice((currentTestGroup - 1) * groupSize, currentTestGroup * groupSize);
+        document.getElementById('test-content').style.display = 'block';
+        updateTestWord();
+    }
+
+    function updateTestWord() {
+        if (currentTestIndex < testWords.length) {
+            const testDefinitionElement = document.getElementById('test-definition');
+            const userAnswerInput = document.getElementById('user-answer');
+            testDefinitionElement.textContent = testWords[currentTestIndex].definition;
+            userAnswerInput.value = '';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('test-progress').textContent = `Word ${currentTestIndex + 1}/${testWords.length}`;
+        } else {
+            moveToNextGroup();
+        }
+    }
+
+    function moveToNextGroup() {
+        currentTestGroup++;
+        const totalGroups = Math.ceil(words.length / groupSize);
+        if (currentTestGroup <= totalGroups) {
+            startTest();
+        } else {
+            finishTest();
+        }
+    }
+
+    function finishTest() {
+        document.getElementById('test-content').style.display = 'none';
+        const scoreElement = document.getElementById('score');
+        scoreElement.style.display = 'block';
+        scoreElement.textContent = `Final Score: ${score}/${testWords.length * currentTestGroup}`;
+    }
+
+    function handleAnswerSubmission() {
+        const userAnswerInput = document.getElementById('user-answer');
+        const feedbackElement = document.getElementById('feedback');
+        const correctWord = testWords[currentTestIndex].word;
+        if (userAnswerInput.value.trim().toLowerCase() === correctWord.toLowerCase()) {
+            score++;
+            feedbackElement.textContent = 'Correct!';
+            feedbackElement.style.color = 'green';
+        } else {
+            feedbackElement.textContent = `Incorrect! The correct word is "${correctWord}".`;
+            feedbackElement.style.color = 'red';
+            setTimeout(() => {
+                currentTestIndex++;
+                updateTestWord();
+            }, 2000);
+            return;
+        }
+        currentTestIndex++;
+        updateTestWord();
+    }
+
     document.addEventListener('keydown', function (event) {
         if (event.key === ' ' && event.target === document.body) {
-            toggleDetails(); // Toggle definition and example display on Space key
+            toggleDetails();
         } else if (event.key === 'ArrowRight') {
             currentIndex++;
             if (currentIndex < words.length) {
-                updateFlashcard(currentIndex); // Move to the next word
+                updateFlashcard(currentIndex);
             } else {
-                finishReview(); // Finish review if last word is reached
+                finishReview();
             }
         } else if (event.key === 'ArrowLeft') {
-            // Prevent navigating to previous groups from the first group
             if (currentIndex > 0) {
                 currentIndex = (currentIndex - 1 + words.length) % words.length;
-                updateFlashcard(currentIndex); // Move to the previous word
+                updateFlashcard(currentIndex);
             }
         } else if (event.key === 'ArrowUp') {
-            // Increase score if user knows the word
             score++;
-            wordStates[words[currentIndex].word] = 'up'; // Mark word as known
+            wordStates[words[currentIndex].word] = 'up';
             currentIndex++;
             if (currentIndex < words.length) {
-                updateFlashcard(currentIndex); // Move to the next word
+                updateFlashcard(currentIndex);
             } else {
-                finishReview(); // Finish review if last word is reached
+                finishReview();
             }
         } else if (event.key === 'ArrowDown') {
-            wordStates[words[currentIndex].word] = 'down'; // Mark word as not known
+            wordStates[words[currentIndex].word] = 'down';
             currentIndex++;
             if (currentIndex < words.length) {
-                updateFlashcard(currentIndex); // Move to the next word without increasing score
+                updateFlashcard(currentIndex);
             } else {
-                finishReview(); // Finish review if last word is reached
+                finishReview();
             }
+        } else if (event.key === 'Q' || event.key === 'E' || event.key === 'q' || event.key === 'e') {
+            finishReview();
         }
     });
 
-    // Event listener for mouse click on the word element
     document.getElementById('word').addEventListener('click', function () {
-        toggleDetails(); // Toggle definition and example display on mouse click
+        toggleDetails();
     });
 
-    // Function to finish the review
+    document.getElementById('start-test').addEventListener('click', startTest);
+    document.getElementById('submit-answer').addEventListener('click', handleAnswerSubmission);
+
     function finishReview() {
         const scoreElement = document.getElementById('score');
-        scoreElement.style.display = 'block'; // Show the score
+        scoreElement.style.display = 'block';
         scoreElement.textContent = `Score: ${score}/${words.length}`;
     }
 
-    // Fetch and display flashcards initially
     fetchAndDisplayFlashcards();
 });
