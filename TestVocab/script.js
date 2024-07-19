@@ -1,17 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
     let currentIndex = 0;
+    let allWords = [];
     let words = [];
     let score = 0;
     let selectedGroup = null;
     let showCorrectWordTimeout = null;
     let totalCorrect = 0;
     let totalAttempted = 0;
+    let globalTotalCorrect = 0;
+    let globalTotalAttempted = 0;
 
     function fetchAndDisplayFlashcards() {
         fetch('http://localhost:8000/flashcards.json')
             .then(response => response.json())
             .then(data => {
-                words = data.words;
+                allWords = data.words;
                 populateGroupOptions(data.words);
             })
             .catch(error => console.error('Error fetching JSON:', error));
@@ -32,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function startQuiz() {
         const groupSelect = document.getElementById('groupSelect');
         selectedGroup = parseInt(groupSelect.value);
-        words = words.filter(word => word.group === selectedGroup);
+        words = allWords.filter(word => word.group === selectedGroup);
         words = shuffle(words);
         currentIndex = 0;
         score = 0;
@@ -85,10 +88,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('keydown', function (event) {
         const userInputElement = document.getElementById('userInput');
-        if (event.key === 'Enter' && event.target === userInputElement) {
+        const exampleElement = document.getElementById('example');
+        if (event.key
+            === 'Enter' && event.target === userInputElement) {
             checkAnswer();
         } else if (event.key === ' ' && event.target !== userInputElement) {
-            if (showCorrectWordTimeout) {
+            if (exampleElement.style.display === 'none') {
+                exampleElement.style.display = 'block';
+            } else if (showCorrectWordTimeout) {
                 clearTimeout(showCorrectWordTimeout);
                 showCorrectWordTimeout = null;
                 moveToNextWord(); // Move to next word if space key is pressed after showing correct word
@@ -99,15 +106,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function checkAnswer() {
         const userInput = document.getElementById('userInput').value.trim().toLowerCase();
         const flashcardElement = document.getElementById('flashcard');
-        const exampleElement = document.getElementById('example');
 
         if (userInput === words[currentIndex].word.toLowerCase()) {
             score++;
             totalCorrect++;
+            globalTotalCorrect++;
             moveToNextWord(); // Move to next word instantly for correct answer
         } else {
             flashcardElement.style.backgroundColor = 'lightcoral';
-            exampleElement.style.display = 'block';
             showCorrectWordTimeout = setTimeout(() => {
                 showCorrectWordAndMoveToNext(); // Show correct word after timeout if wrong answer
             }, 2000); // Adjust timeout delay as needed
@@ -120,15 +126,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const correctWordElement = document.getElementById('correctWord');
         const correctWord = words[currentIndex].word;
 
-        console.log('Correct word:', correctWord); // Check if correct word is fetched correctly
-
         correctWordElement.textContent = `(Correct word: ${correctWord})`;
         correctWordElement.style.display = 'block';
 
         setTimeout(() => {
             correctWordElement.style.display = 'none';
             moveToNextWord();
-        }, 2000); // Adjust timeout delay as needed
+        }, 20); // Adjust timeout delay as needed
     }
 
     function moveToNextWord() {
@@ -142,13 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function finishGroup() {
         const scoreElement = document.getElementById('score');
+        globalTotalAttempted += totalAttempted;
         scoreElement.style.display = 'block';
-        scoreElement.textContent = `Total Score: ${totalCorrect}/${totalAttempted}`;
+        scoreElement.textContent = `Total Score: ${globalTotalCorrect}/${globalTotalAttempted}`;
 
         const groupSelect = document.getElementById('groupSelect');
         const nextGroupOption = [...groupSelect.options].find(option => parseInt(option.value) === selectedGroup + 1);
         if (nextGroupOption) {
             groupSelect.value = nextGroupOption.value;
+            selectedGroup++;
+            words = allWords.filter(word => word.group === selectedGroup);
             startQuiz();
         } else {
             document.getElementById('flashcard').style.display = 'none';
@@ -157,6 +164,8 @@ document.addEventListener('DOMContentLoaded', function () {
             groupSelect.value = '';
             totalCorrect = 0;
             totalAttempted = 0;
+            globalTotalCorrect = 0;
+            globalTotalAttempted = 0;
         }
     }
 
