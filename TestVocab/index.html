@@ -25,9 +25,18 @@
             <input type="text" id="userInput" placeholder="Your Answer Here" style="display: none;">
             <div id="correctWord" style="display: none;"></div>
         </div>
-        <div id="score" style="display: none;"></div>
+        <div id="scoreContainer" style="display: none;">
+            <div id="score"></div>
+            <div id="incorrectWordsContainer" style="display: none;">
+                <h3>Incorrect Words:</h3>
+                <ul id="incorrectWords"></ul>
+            </div>
+            <div id="finishButtons" style="display: none;">
+                <button id="nextGroup">Next Group</button>
+                <button id="quitQuiz">Quit</button>
+            </div>
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 
