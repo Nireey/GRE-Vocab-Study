@@ -160,17 +160,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function finishGroup() {
         const scoreElement = document.getElementById('score');
+        const incorrectWordsContainer = document.getElementById('incorrectWordsContainer');
+        const finishButtons = document.getElementById('finishButtons');
+        const incorrectWordsList = document.getElementById('incorrectWords');
+
         globalTotalAttempted += totalAttempted;
-        scoreElement.style.display = 'block';
+
         scoreElement.innerHTML = `
             <p>Total Score: ${globalTotalCorrect}/${globalTotalAttempted}</p>
-            <p>Incorrect Words:</p>
-            <ul id="incorrectWordsList"></ul>
-            <button id="nextGroupButton">Next Group</button>
-            <button id="quitButton">Quit</button>
         `;
 
-        const incorrectWordsList = document.getElementById('incorrectWordsList');
+        incorrectWordsContainer.style.display = 'block';
+        incorrectWordsList.innerHTML = '';
+
         const incorrectWords = words.filter((_, index) => !answeredIndices.has(index));
         incorrectWords.forEach(word => {
             const listItem = document.createElement('li');
@@ -178,27 +180,36 @@ document.addEventListener('DOMContentLoaded', function () {
             incorrectWordsList.appendChild(listItem);
         });
 
-        document.getElementById('nextGroupButton').addEventListener('click', function () {
-            const groupSelect = document.getElementById('groupSelect');
-            const nextGroupOption = [...groupSelect.options].find(option => parseInt(option.value) === selectedGroup + 1);
-            if (nextGroupOption) {
-                groupSelect.value = nextGroupOption.value;
-                selectedGroup++;
-                words = allWords.filter(word => word.group === selectedGroup);
+        document.getElementById('flashcard').style.display = 'none';
+        document.getElementById('scoreContainer').style.display = 'block';
+        finishButtons.style.display = 'block';
+
+        document.getElementById('nextGroup').addEventListener('click', function () {
+            selectedGroup++;
+            if (selectedGroup <= Math.max(...allWords.map(word => word.group))) {
+                const groupSelect = document.getElementById('groupSelect');
+                groupSelect.value = selectedGroup;
                 startQuiz();
+            } else {
+                alert('No more groups available.');
+                resetQuiz();
             }
         });
 
-        document.getElementById('quitButton').addEventListener('click', function () {
-            document.getElementById('flashcard').style.display = 'none';
-            document.getElementById('score').style.display = 'none';
-            document.getElementById('group-selection').style.display = 'block';
-            document.getElementById('groupSelect').value = '';
-            totalCorrect = 0;
-            totalAttempted = 0;
-            globalTotalCorrect = 0;
-            globalTotalAttempted = 0;
+        document.getElementById('quitQuiz').addEventListener('click', function () {
+            resetQuiz();
         });
+    }
+
+    function resetQuiz() {
+        document.getElementById('scoreContainer').style.display = 'none';
+        document.getElementById('group-selection').style.display = 'block';
+        document.getElementById('groupSelect').value = '';
+        totalCorrect = 0;
+        totalAttempted = 0;
+        globalTotalCorrect = 0;
+        globalTotalAttempted = 0;
+        answeredIndices.clear();
     }
 
     function skipQuestion() {

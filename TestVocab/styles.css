@@ -159,7 +159,6 @@ body {
 #userInput {
     margin-top: 30px;
     padding: 15px;
-    /* Increased padding for larger input box */
     font-size: 20px;
     width: 100%;
     border: 1px solid #ccc;
