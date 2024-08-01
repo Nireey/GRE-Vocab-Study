@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let globalTotalCorrect = 0;
     let globalTotalAttempted = 0;
     let answeredIndices = new Set(); // Track answered indices
+    let incorrectWords = new Set(); // Use Set to store incorrect words
 
     function fetchAndDisplayFlashcards() {
         fetch('http://localhost:8000/flashcards.json')
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         score = 0;
         totalAttempted = words.length;
         answeredIndices.clear(); // Reset answered indices for new quiz
+        incorrectWords.clear(); // Reset incorrect words for new quiz
         document.getElementById('group-selection').style.display = 'none';
         document.getElementById('flashcard').style.display = 'block';
         document.getElementById('userInput').style.display = 'block';
@@ -109,10 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 showCorrectWordTimeout = null;
                 moveToNextWord(); // Move to next word if space key is pressed after showing correct word
             }
-        } else if (event.key === 'ArrowRight') {
-            skipQuestion();
-        } else if (event.key === 'ArrowLeft') {
-            goBackToPreviousWord();
         }
     });
 
@@ -126,9 +124,11 @@ document.addEventListener('DOMContentLoaded', function () {
             totalCorrect++;
             globalTotalCorrect++;
             answeredIndices.add(currentIndex); // Mark current index as answered
+            incorrectWords.delete(currentWord); // Ensure correct word is not in incorrect list
             moveToNextWord(); // Move to next word instantly for correct answer
         } else {
             flashcardElement.style.backgroundColor = 'lightcoral';
+            incorrectWords.add(currentWord); // Add incorrect word to the Set
             showCorrectWordTimeout = setTimeout(() => {
                 showCorrectWordAndMoveToNext(); // Show correct word after timeout if wrong answer
             }, 2000); // Adjust timeout delay as needed
@@ -173,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function () {
         incorrectWordsContainer.style.display = 'block';
         incorrectWordsList.innerHTML = '';
 
-        const incorrectWords = words.filter((_, index) => !answeredIndices.has(index));
         incorrectWords.forEach(word => {
             const listItem = document.createElement('li');
             listItem.textContent = word.word;
@@ -183,23 +182,26 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('flashcard').style.display = 'none';
         document.getElementById('scoreContainer').style.display = 'block';
         finishButtons.style.display = 'block';
-
-        document.getElementById('nextGroup').addEventListener('click', function () {
-            selectedGroup++;
-            if (selectedGroup <= Math.max(...allWords.map(word => word.group))) {
-                const groupSelect = document.getElementById('groupSelect');
-                groupSelect.value = selectedGroup;
-                startQuiz();
-            } else {
-                alert('No more groups available.');
-                resetQuiz();
-            }
-        });
-
-        document.getElementById('quitQuiz').addEventListener('click', function () {
-            resetQuiz();
-        });
     }
+
+    document.getElementById('nextGroup').addEventListener('click', function () {
+        selectedGroup++;
+
+        // Check if the next group exists
+        const maxGroup = Math.max(...allWords.map(word => word.group));
+        if (selectedGroup <= maxGroup) {
+            const groupSelect = document.getElementById('groupSelect');
+            groupSelect.value = selectedGroup;
+            startQuiz();
+        } else {
+            alert('No more groups available.');
+            resetQuiz();
+        }
+    });
+
+    document.getElementById('quitQuiz').addEventListener('click', function () {
+        resetQuiz();
+    });
 
     function resetQuiz() {
         document.getElementById('scoreContainer').style.display = 'none';
@@ -210,18 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         globalTotalCorrect = 0;
         globalTotalAttempted = 0;
         answeredIndices.clear();
-    }
-
-    function skipQuestion() {
-        answeredIndices.add(currentIndex); // Mark current index as answered
-        moveToNextWord();
-    }
-
-    function goBackToPreviousWord() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            updateFlashcard(currentIndex);
-        }
     }
 
     document.getElementById('startQuiz').addEventListener('click', startQuiz);
